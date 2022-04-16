@@ -1,12 +1,19 @@
 
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:forum_republique/api/my_api.dart';
+import 'package:forum_republique/classes/user.dart';
 import 'package:forum_republique/common/theme_helper.dart';
+import 'package:forum_republique/utils/server_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'forgot_password_page.dart';
 import 'profile_page.dart';
 import 'registration_page.dart';
 import 'widgets/header_widget.dart';
+import 'package:http/http.dart' as http ;
 
 class LoginPage extends StatefulWidget{
   const LoginPage({Key? key}): super(key:key);
@@ -17,8 +24,51 @@ class LoginPage extends StatefulWidget{
 }
 
 class _LoginPageState extends State<LoginPage>{
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   double _headerHeight = 250;
   final _formKey = GlobalKey<FormState>();
+  Future save() async {
+/*    final msg = jsonEncode(<String, String>{
+      "email": "eeeeeeeeee",
+      "firstName": "string",
+      "lastName": "string",
+      "password": "string",
+      "resetPasswordToken": "string",
+      "telephone": "string"
+    });
+    Map<String, String> headers = {
+      "Context-Type": "application/json",
+      "Accept": "application/json",
+    };*/
+    var res = await  http.post(
+      Uri.parse("${ServerConfig.serverAdressess}:8090/api/v1/auth/login"),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        "email": emailController.text,
+        "password": passwordController.text,
+
+      }),
+    );
+    /*   var res = await http.post(
+        Uri.parse("${ServerConfig.serverAdressess}:8090/api/v1/users/ajout"),
+        headers: headers,
+        body: msg);*/
+    if(res.statusCode==201 ||res.statusCode==200){
+      Navigator.push(
+          context,  MaterialPageRoute(builder: (context) => ProfilePage()));
+    }
+    print("res.bodyres.body ${res.body}");
+    print("statusCodestatusCodestatusCode ${res.statusCode}");
+/*  */
+  }
+
+  String  url = "";
+
+  _login() async {
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +77,7 @@ class _LoginPageState extends State<LoginPage>{
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
+          key: _formKey,
           children: [
             Container(
               height: _headerHeight,
@@ -58,7 +109,7 @@ class _LoginPageState extends State<LoginPage>{
                     ),
                     SizedBox(height: 30.0),
                     Form(
-                      key: _formKey,
+
                         child: Column(
                           children: [
                             Container(
@@ -109,15 +160,11 @@ class _LoginPageState extends State<LoginPage>{
                                   child: Text('identifier'.toUpperCase(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
                                 ),
                                 onPressed: (){
+
                                   if (_formKey.currentState!.validate()) {
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                            builder: (context) => ProfilePage()
-                                        ),
-                                            (Route<dynamic> route) => false
-                                    );
+                                    save();
                                   }
-                                  //After successful login we will redirect to profile page. Let's create profile page now
+
 
                                 },
                               ),
